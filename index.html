@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>纳米气相分子泵交互工作台</title>
+  <meta name="description" content="用交互式图形探索非对称碳纳米锥、碳纳米管结构中的氩原子吸附、跨势阱迁移和非平衡输运。">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#simulator" aria-label="纳米气相分子泵交互工作台">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span>纳米气相分子泵</span>
+    </a>
+    <nav aria-label="页面导航">
+      <a href="#simulator">模拟器</a>
+      <a href="#proof">证明边界</a>
+      <a href="#statistics">统计验证</a>
+      <a href="#originality">原创性</a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="simulator" class="sim-stage" aria-labelledby="site-title">
+      <div class="stage-copy">
+        <p class="eyebrow">Interactive molecular-transport lab</p>
+        <h1 id="site-title">非对称限域势场如何调制氩原子输运</h1>
+        <p class="lede">
+          操作温度、层间距、势垒和气相密度差，观察短时间方向性穿越、
+          详细平衡和非平衡通量之间的区别。
+        </p>
+      </div>
+
+      <div class="stage-grid">
+        <div class="visual-shell">
+          <canvas id="particle-canvas" aria-label="纳米锥和纳米管中的氩原子运动动画"></canvas>
+          <div class="canvas-hud" aria-live="polite">
+            <span id="hud-mode">双纳米锥</span>
+            <span id="hud-flux">净通量 0.00</span>
+            <span id="hud-balance">详细平衡</span>
+          </div>
+        </div>
+
+        <aside class="control-panel" aria-label="模拟参数">
+          <div class="segmented" role="group" aria-label="结构选择">
+            <button class="segment is-active" data-structure="double-cone" type="button">双锥</button>
+            <button class="segment" data-structure="cone-tube" type="button">锥管</button>
+          </div>
+
+          <label class="control-row">
+            <span>温度 <strong id="temp-value">100 K</strong></span>
+            <input id="temp" type="range" min="40" max="180" value="100" step="1">
+          </label>
+
+          <label class="control-row">
+            <span>层间距 <strong id="gap-value">14.0 Å</strong></span>
+            <input id="gap" type="range" min="8" max="20" value="14" step="0.1">
+          </label>
+
+          <label class="control-row">
+            <span>势垒高度 <strong id="barrier-value">18 meV</strong></span>
+            <input id="barrier" type="range" min="4" max="42" value="18" step="1">
+          </label>
+
+          <label class="control-row">
+            <span>密度差 / 化学势差 <strong id="bias-value">0.22</strong></span>
+            <input id="bias" type="range" min="-0.5" max="0.5" value="0.22" step="0.01">
+          </label>
+
+          <div class="toggle-line">
+            <label><input id="equilibrium" type="checkbox"> 强制等密度边界</label>
+            <label><input id="trails" type="checkbox" checked> 显示轨迹</label>
+          </div>
+
+          <div class="button-row">
+            <button id="play" class="icon-button" type="button" title="暂停或继续动画" aria-label="暂停或继续动画">⏸</button>
+            <button id="reset" class="icon-button" type="button" title="重置统计" aria-label="重置统计">↻</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="metric-strip" aria-label="实时指标">
+        <div>
+          <span class="metric-label">正向跨越</span>
+          <strong id="forward-rate">0.00</strong>
+        </div>
+        <div>
+          <span class="metric-label">反向跨越</span>
+          <strong id="backward-rate">0.00</strong>
+        </div>
+        <div>
+          <span class="metric-label">净穿越</span>
+          <strong id="net-rate">0.00</strong>
+        </div>
+        <div>
+          <span class="metric-label">统计 z 值</span>
+          <strong id="z-score">0.0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="full-band">
+      <div class="section-head">
+        <p class="eyebrow">Geometry and energy landscape</p>
+        <h2>结构、势阱和马鞍势垒一起决定迁移概率</h2>
+      </div>
+      <div class="lab-grid">
+        <article class="tool-panel">
+          <h3>截面结构</h3>
+          <canvas id="geometry-canvas" aria-label="纳米结构截面示意"></canvas>
+          <p>
+            双锥结构强调两侧势阱之间的马鞍势垒；锥管结构增加了周向渐变层间距和纳米管轴向扩散路径。
+          </p>
+        </article>
+        <article class="tool-panel">
+          <h3>有效自由能 F(s)</h3>
+          <div id="potential-plot" class="plot" aria-label="有效自由能曲线"></div>
+          <p>
+            势垒越高，跨势阱事件越少；温度越高，高能尾部越容易越过势垒，但过强热扰动会削弱结构选择性。
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="proof" class="proof-section">
+      <div class="section-head">
+        <p class="eyebrow">Proof boundary</p>
+        <h2>数学证明应该证明“边界”，不是证明无源永动泵</h2>
+      </div>
+      <div class="proof-grid">
+        <div class="equation-panel">
+          <h3>平衡态无持续净流</h3>
+          <p>保守势场中的过阻尼扩散可写为：</p>
+          <pre><code>J = -D exp(-βU) ∇[ exp(βU) ρ ]</code></pre>
+          <p>平衡分布为：</p>
+          <pre><code>ρ_eq = C exp(-βU)  ⇒  J_eq = 0</code></pre>
+          <p>所以，几何不对称不能在等温平衡态下单独产生长期净流。</p>
+        </div>
+        <div class="equation-panel">
+          <h3>非平衡边界下可以有通量</h3>
+          <p>沿路径坐标 s 的稳态通量为：</p>
+          <pre><code>J = {e^(βF(a))c(a) - e^(βF(b))c(b)}
+    / ∫[a,b] e^(βF(s))/D(s) ds</code></pre>
+          <p>结构改变的是自由能剖面和通道阻力；驱动力来自密度差、化学势差或其他外部非平衡源。</p>
+        </div>
+        <div class="cycle-panel">
+          <h3>循环判据</h3>
+          <svg id="cycle-diagram" viewBox="0 0 520 300" role="img" aria-label="四态输运循环和详细平衡判据"></svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="statistics" class="full-band">
+      <div class="section-head">
+        <p class="eyebrow">Simulation audit</p>
+        <h2>把“看起来有方向”变成可审查的统计证据</h2>
+      </div>
+      <div class="stats-grid">
+        <article class="tool-panel">
+          <h3>事件统计显著性</h3>
+          <div id="stats-plot" class="plot" aria-label="正反向事件数与净差值统计图"></div>
+          <div class="stat-controls">
+            <button class="case-button is-active" data-case="chapter2" type="button">第二章双锥</button>
+            <button class="case-button" data-case="chapter3-small" type="button">第三章小口</button>
+            <button class="case-button" data-case="chapter3-large" type="button">第三章大口</button>
+          </div>
+        </article>
+        <article class="tool-panel">
+          <h3>有效路径识别</h3>
+          <canvas id="path-canvas" aria-label="有效输运路径和局部往返路径示意"></canvas>
+          <p>
+            有效输运应追踪同一原子完整路径。仅在统计面附近往返穿越，尤其是沿纳米管外壁的轴向扩散，不应直接等同于泵送。
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section id="originality" class="originality-section">
+      <div class="section-head">
+        <p class="eyebrow">Originality position</p>
+        <h2>更稳妥的创新点：结构设计与验证框架</h2>
+      </div>
+      <div class="originality-grid">
+        <div>
+          <h3>不宜主张</h3>
+          <ul class="plain-list negative">
+            <li>完全原创的分子泵基本原理</li>
+            <li>等温平衡态下无源持续泵送</li>
+            <li>范德华力自身提供持续做功来源</li>
+            <li>短时间净穿越可直接外推为宏观泵速</li>
+          </ul>
+        </div>
+        <div>
+          <h3>可以主张</h3>
+          <ul class="plain-list positive">
+            <li>双碳纳米锥嵌套夹层结构</li>
+            <li>偏心锥管组合的渐变层间距设计</li>
+            <li>马鞍势垒、局域原子云和跨阱迁移解释</li>
+            <li>针对氩气体系的 MD 验证路线</li>
+          </ul>
+        </div>
+      </div>
+      <div class="reference-strip">
+        <a href="https://www.nature.com/articles/srep23414" target="_blank" rel="noreferrer">非对称碳纳米通道稀有气体输运</a>
+        <a href="https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.97.144509" target="_blank" rel="noreferrer">非对称纳米孔 ratchet MD</a>
+        <a href="https://pubmed.ncbi.nlm.nih.gov/28953353/" target="_blank" rel="noreferrer">CNT 热 Brownian motor</a>
+        <a href="https://www.nature.com/articles/nnano.2010.152" target="_blank" rel="noreferrer">静态势场连续流争议</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>静态演示站点。图形为解释性模型，不替代长时间、多随机种子、严格力场参数核对后的 LAMMPS 结果。</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
