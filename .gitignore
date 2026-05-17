@@ -1,4 +1,6 @@
 .DS_Store
 *.log
 node_modules/
-
+.quarto/
+docs/
+**/*.quarto_ipynb

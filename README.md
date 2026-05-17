@@ -2,7 +2,13 @@
 
 This repository contains a static, graphics-heavy explainer for the carbon nanocone / nanotube gas-phase molecular pump concept.
 
-Open `index.html` directly in a browser, or serve the repository root with any static file server.
+The source is a Quarto website. Render locally with:
+
+```sh
+quarto render
+```
+
+The rendered output is written to `docs/`. GitHub Actions renders and deploys that directory to GitHub Pages.
 
 ## What is interactive
 
@@ -17,4 +23,3 @@ Open `index.html` directly in a browser, or serve the repository root with any s
 ## Scientific scope
 
 The site presents an explanatory model. It does not replace long-time LAMMPS simulations, force-field validation, multiple random seeds, or strict path classification.
-

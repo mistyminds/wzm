@@ -1,0 +1,23 @@
+project:
+  type: website
+  output-dir: docs
+  resources:
+    - app.js
+
+website:
+  title: "纳米气相分子泵交互工作台"
+  site-url: "https://mistyminds.github.io/wzm/"
+
+format:
+  html:
+    lang: zh
+    theme: none
+    css: styles.css
+    toc: false
+    page-layout: full
+    include-in-header:
+      text: |
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+    include-after-body:
+      text: |
+        <script src="app.js"></script>

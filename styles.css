@@ -29,6 +29,21 @@ body {
   background: var(--paper);
 }
 
+#quarto-content,
+#quarto-document-content,
+main.content {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+#title-block-header,
+.quarto-title-block {
+  display: none;
+}
+
 a {
   color: inherit;
 }
