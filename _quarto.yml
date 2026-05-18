@@ -3,10 +3,11 @@ project:
   output-dir: docs
   resources:
     - app.js
+    - CNAME
 
 website:
   title: "纳米气相分子泵交互工作台"
-  site-url: "https://mistyminds.github.io/wzm/"
+  site-url: "https://wzm.moxin.app/"
 
 format:
   html:
